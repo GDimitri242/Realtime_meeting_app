@@ -1,10 +1,10 @@
-# CIRAS MEET - Plateforme de Visioconférence Collaborative
+# CIRAS MEET - Plateforme de visioconférence collaborative
 
 ![NodeJS](https://img.shields.io/badge/Node.js-14.x-green) ![Socket.io](https://img.shields.io/badge/Socket.io-Realtime-black) ![WebRTC](https://img.shields.io/badge/WebRTC-PeerJS-blue) ![MongoDB](https://img.shields.io/badge/Database-MongoDB-forestgreen)
 
 **CIRAS MEET** est une application web de visioconférence en temps réel conçue pour faciliter le travail collaboratif à distance. Elle combine des fonctionnalités vidéo classiques avec des outils d'interaction avancés comme un tableau blanc partagé et la gestion de prise de parole.
 
-## Fonctionnalités Principales
+## Fonctionnalités principales
 
 * **🔐 Authentification Sécurisée :** Inscription et connexion des utilisateurs via MongoDB (mots de passe hachés).
 * **📹 Appels Vidéo & Audio :** Communication fluide en pair-à-pair (P2P) via WebRTC.
@@ -14,7 +14,7 @@
 * **💬 Chat Intégré :** Messagerie instantanée durant la réunion.
 * **🌙 Interface Dark Mode :** Design moderne et reposant pour les yeux.
 
-## Stack Technique
+## Stack technique
 
 **Backend :**
 * Node.js
@@ -41,14 +41,14 @@ Suivez ces instructions pour lancer le projet localement.
 ```bash
 git clone [https://github.com/votre-nom-utilisateur/ciras-meet.git](https://github.com/votre-nom-utilisateur/ciras-meet.git)
 cd ciras-meet
-```bash
+```
 
 ### 3. Installer les dépendances
 ```bash
 npm install
-```bash
+```
 
-### 4. Configuration SSL (Important)
+### 4. Configuration SSL
 L'application utilise HTTPS pour fonctionner avec WebRTC. Vous devez générer des certificats auto-signés.
 Créez un dossier certificats à la racine du projet.
 Générez les clés (si vous avez OpenSSL/Git Bash) :
@@ -57,7 +57,7 @@ Générez les clés (si vous avez OpenSSL/Git Bash) :
 mkdir certificats
 cd certificats
 openssl req -x509 -newkey rsa:4096 -keyout localhost-key.pem -out localhost.pem -days 365 -nodes
-```bash
+```
 
 Note : Si vous ne pouvez pas générer de clés, vous pouvez commenter la partie HTTPS dans server.js et utiliser http pour le développement (mais la vidéo risque de ne pas fonctionner sur certains navigateurs).
 
@@ -66,7 +66,7 @@ Note : Si vous ne pouvez pas générer de clés, vous pouvez commenter la partie
 npm start
 # Ou pour le mode développement avec nodemon
 npm run dev
-```bash
+```
 
 Accédez à l'application via : https://localhost:3030
 
@@ -79,8 +79,8 @@ Note : Votre navigateur affichera une alerte de sécurité car le certificat est
 │   ├── script.js      # Logique client (Socket.io, PeerJS, Canvas)
 │   └── style.css      # Styles globaux
 ├── views/             # Templates EJS
-│   ├── landing.ejs    # Page d'accueil publique
-│   ├── index.ejs      # Dashboard utilisateur
+│   ├── dashboard.ejs  # Dashboard utilisateur
+│   ├── index.ejs      # Page d'accueil publique
 │   ├── room.ejs       # Salle de réunion
 │   ├── login.ejs      # Page de connexion
 │   └── register.ejs   # Page d'inscription
@@ -91,13 +91,9 @@ Note : Votre navigateur affichera une alerte de sécurité car le certificat est
 Les contributions sont les bienvenues !
 
 Forkez le projet.
-
 Créez votre branche de fonctionnalité (git checkout -b feature/AmazingFeature).
-
 Commitez vos changements (git commit -m 'Add some AmazingFeature').
-
 Push vers la branche (git push origin feature/AmazingFeature).
-
 Ouvrez une Pull Request.
 
 ## Auteur
