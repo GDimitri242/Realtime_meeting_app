@@ -41,11 +41,12 @@ Suivez ces instructions pour lancer le projet localement.
 ```bash
 git clone [https://github.com/votre-nom-utilisateur/ciras-meet.git](https://github.com/votre-nom-utilisateur/ciras-meet.git)
 cd ciras-meet
-
+```bash
 
 ### 3. Installer les dépendances
 ```bash
 npm install
+```bash
 
 ### 4. Configuration SSL (Important)
 L'application utilise HTTPS pour fonctionner avec WebRTC. Vous devez générer des certificats auto-signés.
@@ -56,6 +57,7 @@ Générez les clés (si vous avez OpenSSL/Git Bash) :
 mkdir certificats
 cd certificats
 openssl req -x509 -newkey rsa:4096 -keyout localhost-key.pem -out localhost.pem -days 365 -nodes
+```bash
 
 Note : Si vous ne pouvez pas générer de clés, vous pouvez commenter la partie HTTPS dans server.js et utiliser http pour le développement (mais la vidéo risque de ne pas fonctionner sur certains navigateurs).
 
@@ -64,6 +66,7 @@ Note : Si vous ne pouvez pas générer de clés, vous pouvez commenter la partie
 npm start
 # Ou pour le mode développement avec nodemon
 npm run dev
+```bash
 
 Accédez à l'application via : https://localhost:3030
 
