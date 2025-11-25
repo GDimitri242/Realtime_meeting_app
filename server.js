@@ -1,4 +1,3 @@
-/*server.js*/
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
@@ -84,12 +83,12 @@ app.get('/logout', (req, res) => {
 
 // --- ROUTES APP ---
 app.get('/', (req, res) => {
-    res.render('index', { userId: req.session.userId });
+    res.render('index');
 });
 
 // Afficher le Dashboard
 app.get('/home', requireAuth, (req, res) => {
-    res.render('dashboard', { username: req.session.username });
+    res.render('dashboard', { userId: req.session.userId, username: req.session.username });
 });
 
 // Route spécifique pour créer une salle (utilisée par le bouton "Nouvelle Réunion")
@@ -98,7 +97,7 @@ app.post('/create-room', requireAuth, (req, res) => {
 });
 
 app.get('/:room', requireAuth, (req, res) => {
-    res.render('room', { roomId: req.params.room, username: req.session.username });
+    res.render('room', { roomId: req.params.room, userId: req.session.userId, username: req.session.username });
 });
 
 // --- SOCKET IO ---
