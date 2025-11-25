@@ -1,5 +1,3 @@
-# Realtime_meeting_app
-
 # CIRAS MEET - Plateforme de Visioconférence Collaborative
 
 ![NodeJS](https://img.shields.io/badge/Node.js-14.x-green) ![Socket.io](https://img.shields.io/badge/Socket.io-Realtime-black) ![WebRTC](https://img.shields.io/badge/WebRTC-PeerJS-blue) ![MongoDB](https://img.shields.io/badge/Database-MongoDB-forestgreen)
