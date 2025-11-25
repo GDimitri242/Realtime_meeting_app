@@ -95,7 +95,6 @@ Note : Votre navigateur affichera une alerte de sécurité car le certificat est
 │   └── register.ejs   # Page d'inscription
 
 ├── server.js          # Serveur principal (Express, Socket, Mongo)
-
 └── package.json       # Dépendances
 
 ## Contribution
