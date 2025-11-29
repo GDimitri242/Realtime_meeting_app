@@ -6,7 +6,9 @@
    <title>Réunion Vidéo</title>
    <script>
       const ROOM_ID = "<%= roomId %>";
-      const USERNAME = "<%= username %>";
+      const USERNAME = "<%= username %>"; // Correction du bug username null
+      const USER_ID = "<%= userId %>";
+      const DNS_NAME = "<%= dns %>";
    </script>
    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
@@ -14,21 +16,33 @@
    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-   <div id="whiteboard-container" class="whiteboard-container d-none">
-       <div class="whiteboard-controls">
-           <input type="color" id="colorPicker" value="#000000">
-           <button class="btn btn-sm btn-danger" onclick="clearBoard()">Effacer</button>
-           <button class="btn btn-sm btn-secondary" onclick="toggleWhiteboard()">Fermer</button>
-       </div>
-       <canvas id="whiteboard"></canvas>
-   </div>
-
    <div id="notification-area" style="position: absolute; top: 20px; right: 20px; z-index: 1000;"></div>
 
    <div class="main">
       <div class="main__left">
-         <div class="main__videos">
-            <div id="video-grid"></div>
+         
+         <div class="main__content_wrapper">
+            
+            <div id="main-stage" class="d-none">
+               <div id="presenter-badge" class="presenter-badge d-none">
+                     <i class="fas fa-desktop mr-2"></i> Présentateur : <span id="presenter-name-text"></span>
+               </div>
+               <div id="whiteboard-wrapper" class="d-none w-100 h-100 flex-column">
+                     <div class="whiteboard-controls p-2 d-flex align-items-center" style="background: #eee; border-bottom: 1px solid #ccc;">
+                        <input type="color" id="colorPicker" value="#000000" class="mr-3" title="Choisir une couleur">
+                        <button class="btn btn-sm btn-danger mr-2" onclick="clearBoard()">
+                            <i class="fas fa-trash-alt mr-1"></i> Tout effacer
+                        </button>
+                        <span class="ml-auto text-dark small font-weight-bold">Mode Tableau Blanc</span>
+                    </div>
+                    <canvas id="whiteboard" style="flex:1; background:white; width:100%; display:block;"></canvas>
+               </div>
+            </div>
+
+            <div class="main__videos">
+                <div id="video-grid"></div>
+            </div>
+
          </div>
          
          <div class="main__controls">
@@ -78,7 +92,7 @@
          </div>
       </div>
 
-      <div class="modal draggable fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+     <div class="modal draggable fade" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
            <div class="modal-content">
               <div class="modal-header main__header">
@@ -113,7 +127,7 @@
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-white mb-2">Lien d'invitation</label>
                         <div class="invite-link-container">
-                            <div id="invite-link" class="invite-link">https://localhost:3030/<%= roomId %></div>
+                            <div id="invite-link" class="invite-link">https://<%= dns %>/<%= roomId %></div>
                             <button id="copy-link-btn" class="copy-btn">
                                 Copier
                             </button>
@@ -150,7 +164,6 @@
             </div>
          </div>
       </div>
-
    </div>
 
    <script src="/socket.io/socket.io.js"></script>

@@ -159,7 +159,7 @@ video {
     padding: 15px;
 }
 
-.modal-header {
+#chatModal .modal-header {
     cursor: move;
 }
 
@@ -346,10 +346,8 @@ video {
 .whiteboard-controls {
     background: white;
     padding: 10px;
-    border-radius: 8px 8px 0 0;
     display: flex;
     gap: 10px;
-    width: 80%;
 }
 
 #whiteboard {
@@ -462,7 +460,7 @@ video {
 
 /* --- Landing Page Styles --- */
 .hero-section {
-    padding: 100px 0;
+    padding: 20px 0;
     background: radial-gradient(circle at center, #2f3136 0%, var(--bg-dark) 70%);
 }
 
@@ -489,4 +487,86 @@ video {
     align-items: center;
     justify-content: center;
     margin: 0 auto;
+}
+
+/* Zone de contenu flexible */
+.main__content_wrapper {
+    display: flex;
+    flex-direction: row; /* Important: Alignement horizontal */
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* La Scène Principale (Gauche) */
+#main-stage {
+    /* Par défaut caché ou flex-grow */
+    flex: 1; 
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Grille Vidéo (Droite ou Plein écran) */
+.main__videos {
+    flex: 1; /* Par défaut prend toute la place si main-stage est caché */
+    background-color: var(--bg-dark);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow-y: auto;
+    /*transition: all 0.3s ease;*/
+}
+
+/* --- MODE FOCUS ACTIVÉ --- */
+.focus-mode #main-stage {
+    display: flex !important; /* Force l'affichage */
+    width: 80%; /* Prend la majorité de l'espace */
+}
+
+.focus-mode .main__videos {
+    flex: 0 0 250px; /* Devient une colonne fixe à droite */
+    width: 250px;
+    border-left: 1px solid #333;
+    flex-direction: column; /* Important: Change l'axe flex */
+    justify-content: flex-start; /* Aligner en haut */
+    padding: 10px;
+}
+
+.focus-mode #video-grid {
+    width: 100%;
+    display: flex;
+    flex-direction: column; /* Force les vidéos en colonne */
+    gap: 10px;
+}
+
+.focus-mode video {
+    width: 100%;
+    height: auto; /* Ratio conservé */
+    /*max-height: 150px;*/
+}
+
+/* style.css - Ajout à la fin */
+
+.presenter-badge {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    z-index: 100; /* Au-dessus du canvas/vidéo */
+    pointer-events: none; /* Ne gêne pas le clic */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.video-wrapper {
+    /* Assure une transition fluide lors de la suppression */
+    transition: all 0.3s ease;
 }

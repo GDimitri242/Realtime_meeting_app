@@ -1,13 +1,18 @@
 const socket = io('/');
 const videoGrid = document.getElementById('video-grid');
-const myPeer = new Peer(undefined, {
-  path: '/peerjs',
-  host: '/',
-  port: '3030'
-});
 
+let myPeer;
 let myVideoStream;
 let myScreenStream;
+
+let myScreenPeer; // Instance PeerJS dédiée à l'écran
+let screenStream; // Le flux vidéo de l'écran
+let currentScreenCall; // Pour stocker l'appel entrant du partage
+let isScreenSharing = false;
+
+/**flux vidéo */
+const myVideo = document.createElement('video');
+myVideo.muted = true;
 
 const text = $("#chat_message");
 const chatButton = document.querySelector('#chatButton');
@@ -16,10 +21,6 @@ const copyLinkBtn = document.getElementById('copy-link-btn');
 const copyCodeBtn = document.getElementById('copy-code-btn');
 const emailShareBtn = document.getElementById('email-share-btn');
 const nativeShareBtn = document.getElementById('native-share-btn');
-
-/**flux vidéo */
-const myVideo = document.createElement('video');
-myVideo.muted = true;
 
 const peers = {}; // Stocke les connexions Peer
 const peersData = {}; // Stocke les info utilisateurs
@@ -31,6 +32,16 @@ navigator.mediaDevices.getUserMedia({
 }).then(stream => {
   myVideoStream = stream;
   addVideoStream(myVideo, stream, 'Moi');
+
+  myPeer = new Peer(undefined, {
+    path: '/peerjs',
+    host: '/',
+    port: '3030'
+  });
+
+  myPeer.on('open', id => {
+    socket.emit('join-room', ROOM_ID, id)
+  })
 
   myPeer.on('call', call => {
     call.answer(stream);
@@ -49,11 +60,13 @@ navigator.mediaDevices.getUserMedia({
     });
   });
 
-  socket.on('user-connected', (userId, username) => {
+  socket.on('user-connected', (userId, userName) => {
+    console.log("User Connected: " + userName); 
+    // Petit délai pour laisser le temps au PeerJS de l'autre de s'initialiser
     setTimeout(() => {
-      connectToNewUser(userId, stream, username);
+      connectToNewUser(userId, stream, userName);
     }, 1000);
-    showNotification(`${username} a rejoint la réunion`);
+    showNotification(`${userName} a rejoint la réunion`);
   });
   
   // --- CHAT ---
@@ -64,52 +77,103 @@ navigator.mediaDevices.getUserMedia({
     }
   });*/
 
-  socket.on("createMessage", (message, username) => {
-    $(".messages").append(`<li class="message"><b>${username}</b><br/>${message}</li>`);
+  socket.on("createMessage", (message, userName) => {
+    $(".messages").append(`<li class="message"><b>${userName}</b><br/>${message}</li>`);
     scrollToBottom();
   });
 
   // --- MAIN LEVÉE ---
-  socket.on('hand-raised', (userId, username) => {
-    showNotification(`✋ ${username} demande la parole !`, 'info');
-    // Optionnel: Ajouter une bordure dorée à la vidéo de l'utilisateur
+  socket.on('hand-raised', (userId, userName) => {
+    showNotification(`✋ ${userName} demande la parole !`, 'info');
   });
+
+  socket.on('user-started-screen', (userId, username, screenPeerId) => {
+    showNotification(`${username} partage son écran`);
+    updatePresenterBadge(username);
+
+    const call = myPeer.call(screenPeerId, new MediaStream()); // Stream vide factice ou null selon version PeerJS
+    call.on('stream', (remoteScreenStream) => {
+        // 2. Afficher dans la scène principale
+        sharedScreenVideo.srcObject = remoteScreenStream;
+        sharedScreenVideo.play();
+        setFocusMode(true, sharedScreenVideo);
+        currentScreenCall = call;
+    });
+  });
+
+  socket.on('user-stopped-screen', () => {
+    showNotification("Partage d'écran terminé");
+    if (currentScreenCall) currentScreenCall.close();
+    setFocusMode(false); // Retour grille
+  });
+  
+  socket.on('user-disconnected', userId => {
+    if (peers[userId]) peers[userId].close();
+    
+    // Supprimer l'élément HTML correspondant
+    const videoWrapper = document.getElementById(`video-wrapper-${userId}`);
+    if (videoWrapper) {
+        videoWrapper.remove();
+    }
+  });
+
+  // Réception de l'ordre d'ouvrir/fermer le tableau
+  socket.on('whiteboard-toggled', (isOpen, username) => {
+      if (isOpen) {
+          updatePresenterBadge(username);
+          setFocusMode(true, whiteboardWrapper);
+          showNotification(`Tableau blanc activé par ${username}`);
+      } else {
+          hidePresenterBadge();
+          setFocusMode(false);
+      }
+  });
+
+  // Réception du dessin (socket)
+  socket.on('draw-line', (data) => {
+      // Conversion des coordonnées normalisées vers la taille réelle locale
+      drawLine(
+          data.x0 * canvas.width, 
+          data.y0 * canvas.height, 
+          data.x1 * canvas.width, 
+          data.y1 * canvas.height, 
+          data.color, 
+          false
+      );
+  });
+
+  socket.on('board-cleared', () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+  });
+
 });
 
-socket.on('user-disconnected', userId => {
-  if (peers[userId]) peers[userId].close()
-})
-
-myPeer.on('open', id => {
-  socket.emit('join-room', ROOM_ID, id)
-})
-
 function connectToNewUser(userId, stream, username) {
-
   const call = myPeer.call(userId, stream);
   const video = document.createElement('video');
-
   call.on('stream', userVideoStream => {
     addVideoStream(video, userVideoStream, username);
   });
-
   call.on('close', () => {
     video.remove();
   });
-
   peers[userId] = call;
 }
 
-function addVideoStream(video, stream, labelName = '') {
-
+function addVideoStream(video, stream, labelName = '', uid = null) {
   video.srcObject = stream;
   video.addEventListener('loadedmetadata', () => {
     video.play();
   });
   
-  // Créer un wrapper pour ajouter le nom ou icônes
   const videoWrapper = document.createElement('div');
   videoWrapper.className = 'video-wrapper';
+  
+  // Si on a un ID utilisateur, on l'assigne au wrapper pour pouvoir le supprimer plus tard
+  if (uid) {
+      videoWrapper.id = `video-wrapper-${uid}`;
+  }
+
   videoWrapper.append(video);
 
   if(labelName) {
@@ -118,60 +182,72 @@ function addVideoStream(video, stream, labelName = '') {
       label.innerText = labelName;
       videoWrapper.append(label);
   }
-
   videoGrid.append(videoWrapper);
 }
 
 // --- PARTAGE D'ÉCRAN ---
 const shareScreen = async () => {
+    if (isScreenSharing) {
+        stopScreenShare();
+        return;
+    }
+
     try {
-        if (!myScreenStream) {
-            // Démarrer le partage
-            myScreenStream = await navigator.mediaDevices.getDisplayMedia({
-                video: true,
-                audio: true // Audio système si supporté
-            });
+        // 1. Capturer l'écran
+        screenStream = await navigator.mediaDevices.getDisplayMedia({
+            video: { cursor: "always" },
+            audio: false 
+        });
+
+        // 2. Créer un Peer temporaire juste pour l'écran
+        myScreenPeer = new Peer(undefined, {
+            path: '/peerjs',
+            host: '/',
+            port: '3030'
+        });
+
+        myScreenPeer.on('open', id => {
+            // 3. Prévenir le serveur qu'on partage avec cet ID spécifique
+            socket.emit('screen-share-start', id);
+            isScreenSharing = true;
             
-            // Remplacer le flux vidéo envoyé aux autres
-            const screenTrack = myScreenStream.getVideoTracks()[0];
-            
-            // Pour chaque peer connecté, remplacer la track vidéo
-            for (let peerId in peers) {
-                const sender = peers[peerId].peerConnection.getSenders().find((s) => s.track.kind === "video");
-                sender.replaceTrack(screenTrack);
-            }
+            // 4. Afficher mon propre écran localement dans la scène
+            sharedScreenVideo.srcObject = screenStream;
+            sharedScreenVideo.play();
+            updatePresenterBadge('Moi');
+            setFocusMode(true, sharedScreenVideo);
+        });
 
-            // Afficher mon propre écran dans ma vue locale
-            myVideo.srcObject = myScreenStream;
-
-            // Gérer l'arrêt du partage (bouton natif du navigateur)
-            screenTrack.onended = () => {
-                stopScreenShare();
-            };
-
-        } else {
+        // Gestion fin du partage (Bouton navigateur "Arrêter le partage")
+        screenStream.getVideoTracks()[0].onended = () => {
             stopScreenShare();
-        }
+        };
+
     } catch (err) {
-        console.error("Erreur partage écran", err);
+        console.error("Erreur partage:", err);
     }
 };
 
 const stopScreenShare = () => {
-    if(myScreenStream) {
-        myScreenStream.getTracks().forEach(track => track.stop());
-        myScreenStream = null;
-        
-        // Remettre la webcam
-        const videoTrack = myVideoStream.getVideoTracks()[0];
-        for (let peerId in peers) {
-            const sender = peers[peerId].peerConnection.getSenders().find((s) => s.track.kind === "video");
-            sender.replaceTrack(videoTrack);
-        }
-        myVideo.srcObject = myVideoStream;
-    }
-}
+    if (!isScreenSharing) return;
 
+    // 1. Couper le flux
+    if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+    }
+    
+    // 2. Détruire le Peer temporaire
+    if (myScreenPeer) {
+        myScreenPeer.destroy();
+    }
+
+    isScreenSharing = false;
+    hidePresenterBadge();
+    setFocusMode(false); // Revenir en mode grille
+    
+    // 3. Prévenir les autres
+    socket.emit('screen-share-stop');
+};
 
 // --- MAIN LEVÉE ---
 const raiseHand = () => {
@@ -179,31 +255,71 @@ const raiseHand = () => {
     showNotification("Vous avez levé la main");
 }
 
-// --- TABLEAU BLANC (CANVAS) ---
+// --- GESTION DU MODE FOCUS (Tableau / Partage) ---
+const mainContentWrapper = document.querySelector('.main__content_wrapper');
+const mainStage = document.getElementById('main-stage');
+const whiteboardWrapper = document.getElementById('whiteboard-wrapper');
+
+// Élément vidéo pour afficher le partage des autres
+const sharedScreenVideo = document.createElement('video');
+sharedScreenVideo.className = "w-100 h-100";
+sharedScreenVideo.style.objectFit = "contain"; // Important pour voir tout l'écran
+sharedScreenVideo.muted = true; // Toujours mute l'écran pour éviter l'écho
+
+const presenterBadge = document.getElementById('presenter-badge');
+const presenterNameText = document.getElementById('presenter-name-text');
+
+// Canvas Logic
 const canvas = document.getElementById('whiteboard');
 const ctx = canvas.getContext('2d');
-let drawing = false;
-let current = { x: 0, y: 0 };
 
-// Redimensionner le canvas
 const resizeCanvas = () => {
-    canvas.width = window.innerWidth * 0.8;
-    canvas.height = window.innerHeight * 0.8;
-};
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-const toggleWhiteboard = () => {
-    const board = document.getElementById('whiteboard-container');
-    if(board.classList.contains('d-none')) {
-        board.classList.remove('d-none');
-        resizeCanvas();
-    } else {
-        board.classList.add('d-none');
+    // Le canvas prend la taille du conteneur parent (main-stage)
+    if(canvas.parentNode) {
+        canvas.width = canvas.parentNode.offsetWidth;
+        canvas.height = canvas.parentNode.offsetHeight;
     }
 };
 
-// Dessiner
+// Gestionnaire du bouton "Tableau Blanc" (Modifié pour synchronisation)
+const toggleWhiteboard = () => {
+    const isHidden = whiteboardWrapper.classList.contains('d-none');
+    // On inverse l'état actuel
+    const newState = isHidden; 
+    
+    // 1. Mise à jour locale
+    if (newState) {
+        updatePresenterBadge('Moi');
+        setFocusMode(true, whiteboardWrapper);
+    } else {
+        hidePresenterBadge();
+        setFocusMode(false);
+    }
+    
+    // 2. Prévenir les autres
+    socket.emit('toggle-whiteboard', newState);
+};
+
+const closeFocusMode = () => {
+    // Retire la classe CSS (retour grille)
+    mainContentWrapper.classList.remove('focus-mode');
+    // Cache la zone principale
+    mainStage.classList.add('d-none');
+    whiteboardWrapper.classList.add('d-none');
+};
+
+let drawing = false;
+let current = { x: 0, y: 0 };
+
+const getMousePos = (evt) => {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        // Calcul précis : position souris moins position canvas, mis à l'échelle
+        x: (evt.clientX - rect.left) / (rect.right - rect.left) * canvas.width,
+        y: (evt.clientY - rect.top) / (rect.bottom - rect.top) * canvas.height
+    };
+}
+
 const drawLine = (x0, y0, x1, y1, color, emit) => {
     ctx.beginPath();
     ctx.moveTo(x0, y0);
@@ -214,63 +330,85 @@ const drawLine = (x0, y0, x1, y1, color, emit) => {
     ctx.closePath();
 
     if (!emit) return;
-    const w = canvas.width;
-    const h = canvas.height;
-
+    
+    // On envoie des coordonnées normalisées (0 à 1)
     socket.emit('draw', {
-        x0: x0 / w,
-        y0: y0 / h,
-        x1: x1 / w,
-        y1: y1 / h,
+        x0: x0 / canvas.width,
+        y0: y0 / canvas.height,
+        x1: x1 / canvas.width,
+        y1: y1 / canvas.height,
         color: color
     });
 };
 
+// Events Souris corrigés
 const onMouseDown = (e) => {
     drawing = true;
-    current.x = e.offsetX;
-    current.y = e.offsetY;
+    const pos = getMousePos(e);
+    current.x = pos.x;
+    current.y = pos.y;
 };
 
 const onMouseMove = (e) => {
     if (!drawing) return;
-    drawLine(current.x, current.y, e.offsetX, e.offsetY, document.getElementById('colorPicker').value, true);
-    current.x = e.offsetX;
-    current.y = e.offsetY;
+    const pos = getMousePos(e);
+    drawLine(current.x, current.y, pos.x, pos.y, document.getElementById('colorPicker').value, true);
+    current.x = pos.x;
+    current.y = pos.y;
 };
 
 const onMouseUp = (e) => {
     if (!drawing) return;
     drawing = false;
-    drawLine(current.x, current.y, e.offsetX, e.offsetY, document.getElementById('colorPicker').value, true);
+    const pos = getMousePos(e);
+    drawLine(current.x, current.y, pos.x, pos.y, document.getElementById('colorPicker').value, true);
 };
 
-// Events Canvas
-canvas.addEventListener('mousedown', onMouseDown, false);
-canvas.addEventListener('mouseup', onMouseUp, false);
-canvas.addEventListener('mouseout', onMouseUp, false);
-canvas.addEventListener('mousemove', onMouseMove, false);
+// Réattacher les listeners avec les nouvelles fonctions
+canvas.removeEventListener('mousedown', onMouseDown); // Nettoyage au cas où
+canvas.removeEventListener('mousemove', onMouseMove);
+canvas.removeEventListener('mouseup', onMouseUp);
 
-// Socket Draw
-socket.on('draw-line', (data) => {
-    const w = canvas.width;
-    const h = canvas.height;
-    drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color, false);
-});
+canvas.addEventListener('mousedown', onMouseDown, false);
+canvas.addEventListener('mousemove', onMouseMove, false);
+canvas.addEventListener('mouseup', onMouseUp, false);
 
 const clearBoard = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     socket.emit('clear-board');
 }
 
-socket.on('board-cleared', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-});
-
 // --- UTILITAIRES ---
-const showNotification = (msg) => {
+const setFocusMode = (active, contentElement = null) => {
+    if (active) {
+        // 1. Activer le CSS "Focus Mode" (Colonne à droite)
+        mainContentWrapper.classList.add('focus-mode');
+        mainStage.classList.remove('d-none');
+        
+        // 2. Vider la scène et ajouter le contenu demandé (Tableau ou Vidéo)
+        mainStage.innerHTML = '';
+        if (contentElement) {
+            mainStage.appendChild(contentElement);
+            contentElement.classList.remove('d-none');
+            // Si c'est le tableau, on redimensionne le canvas immédiatement
+            if(contentElement.id === 'whiteboard-wrapper') {
+                setTimeout(resizeCanvas, 50);
+            }
+        }
+    } else {
+        // Désactiver le mode focus
+        mainContentWrapper.classList.remove('focus-mode');
+        mainStage.classList.add('d-none');
+        whiteboardWrapper.classList.add('d-none'); // Cacher tableau
+        mainStage.innerHTML = ''; // Nettoyer
+    }
+};
+
+// Notifications
+const showNotification = (msg, type='info') => {
     const notif = document.createElement('div');
-    notif.className = 'alert alert-info';
+    notif.className = `alert alert-${type}`;
+    notif.style.marginBottom = '5px';
     notif.innerText = msg;
     document.getElementById('notification-area').appendChild(notif);
     setTimeout(() => notif.remove(), 3000);
@@ -388,6 +526,17 @@ $(function() {
 
 const toggleInvite = () => {
   $('#inviteModal').modal('toggle');
+}
+
+// --- GESTION DU NOM PRÉSENTATEUR ---
+const updatePresenterBadge = (name) => {
+    presenterNameText.innerText = name;
+    presenterBadge.classList.remove('d-none');
+}
+
+const hidePresenterBadge = () => {
+    presenterBadge.classList.add('d-none');
+    presenterNameText.innerText = '';
 }
 
 // Copier le lien d'invitation
