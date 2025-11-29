@@ -6,13 +6,13 @@
 
 ## Fonctionnalités principales
 
-* **🔐 Authentification sécurisée :** Inscription et connexion des utilisateurs via MongoDB (mots de passe hachés).
-* **📹 Appels vidéo & audio :** Communication fluide en pair-à-pair (P2P) via WebRTC.
-* **🖥️ Partage d'écran :** Possibilité pour les participants de présenter leur écran entier ou une fenêtre spécifique.
-* **🎨 Tableau blanc collaboratif :** Zone de dessin interactive synchronisée en temps réel pour tous les participants.
-* **✋ Gestion de parole :** Fonctionnalité "Lever la main" avec notifications visuelles.
-* **💬 Chat intégré :** Messagerie instantanée durant la réunion.
-* **🌙 Interface dark mode :** Design moderne et reposant pour les yeux.
+* ** Authentification sécurisée :** Inscription et connexion des utilisateurs via MongoDB (mots de passe hachés).
+* ** Appels vidéo & audio :** Communication fluide en pair-à-pair (P2P) via WebRTC.
+* ** Partage d'écran :** Possibilité pour les participants de présenter leur écran entier ou une fenêtre spécifique.
+* ** Tableau blanc collaboratif :** Zone de dessin interactive synchronisée en temps réel pour tous les participants.
+* ** Gestion de parole :** Fonctionnalité "Lever la main" avec notifications visuelles.
+* ** Chat intégré :** Messagerie instantanée durant la réunion.
+* ** Interface dark mode :** Design moderne et reposant pour les yeux.
 
 ## Stack technique
 
@@ -98,5 +98,8 @@ Ouvrez une Pull Request.
 
 ## Auteur
 Développé dans le cadre d'un projet académique.
+
+## Licence
+MIT License
 
 
