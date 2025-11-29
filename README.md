@@ -76,18 +76,18 @@ Note : Votre navigateur affichera une alerte de sécurité car le certificat est
 **ciras_meet/**  
 ├── **certificats/**   # Clés SSL (à générer)  
 ├── **config/**        # Configurations base de données   
-│   └── database.js    # Fichier de connexion  
+│      └── database.js    # Fichier de connexion  
 ├── **middleware/**    # Middlewares  
-│   └── auth.js        # Fichier de contrôle des connxions utilisateurs  
+│      └── auth.js        # Fichier de contrôle des connxions utilisateurs  
 ├── **public/**        # Fichiers statiques (CSS, JS client, Images)  
-│   ├── script.js      # Logique client (Socket.io, PeerJS, Canvas)  
-│   └── style.css      # Styles globaux  
+│      ├── script.js      # Logique client (Socket.io, PeerJS, Canvas)  
+│      └── style.css      # Styles globaux  
 ├── **views/**         # Templates EJS  
-│   ├── dashboard.ejs  # Dashboard utilisateur  
-│   ├── index.ejs      # Page d'accueil publique  
-│   ├── room.ejs       # Salle de réunion  
-│   ├── login.ejs      # Page de connexion  
-│   └── register.ejs   # Page d'inscription  
+│      ├── dashboard.ejs  # Dashboard utilisateur  
+│      ├── index.ejs      # Page d'accueil publique  
+│      ├── room.ejs       # Salle de réunion  
+│      ├── login.ejs      # Page de connexion  
+│      └── register.ejs   # Page d'inscription  
 ├── server.js          # Serveur principal (Express, Socket, Mongo)  
 ├── package-lock.json  
 └── package.json       # Dépendances
