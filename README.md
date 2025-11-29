@@ -6,13 +6,13 @@
 
 ## Fonctionnalités principales
 
-* ** Authentification sécurisée :** Inscription et connexion des utilisateurs via MongoDB (mots de passe hachés).
-* ** Appels vidéo & audio :** Communication fluide en pair-à-pair (P2P) via WebRTC.
-* ** Partage d'écran :** Possibilité pour les participants de présenter leur écran entier ou une fenêtre spécifique.
-* ** Tableau blanc collaboratif :** Zone de dessin interactive synchronisée en temps réel pour tous les participants.
-* ** Gestion de parole :** Fonctionnalité "Lever la main" avec notifications visuelles.
-* ** Chat intégré :** Messagerie instantanée durant la réunion.
-* ** Interface dark mode :** Design moderne et reposant pour les yeux.
+* **Authentification sécurisée :** Inscription et connexion des utilisateurs via MongoDB (mots de passe hachés).
+* **Appels vidéo & audio :** Communication fluide en pair-à-pair (P2P) via WebRTC.
+* **Partage d'écran :** Possibilité pour les participants de présenter leur écran entier ou une fenêtre spécifique.
+* **Tableau blanc collaboratif :** Zone de dessin interactive synchronisée en temps réel pour tous les participants.
+* **Gestion de parole :** Fonctionnalité "Lever la main" avec notifications visuelles.
+* **Chat intégré :** Messagerie instantanée durant la réunion.
+* **Interface dark mode :** Design moderne et reposant pour les yeux.
 
 ## Stack technique
 
@@ -73,12 +73,12 @@ Accédez à l'application via : https://localhost:3030
 Note : Votre navigateur affichera une alerte de sécurité car le certificat est auto-signé. Vous devez accepter le risque/continuer pour accéder au site (ex: "Avancé" -> "Continuer vers localhost").
 
 ## Structure du projet
-ciras_meet/  
-├── certificats/       # Clés SSL (à générer)  
-├── public/            # Fichiers statiques (CSS, JS client, Images)  
+**ciras_meet/**  
+├── **certificats/**       # Clés SSL (à générer)  
+├── **public/**            # Fichiers statiques (CSS, JS client, Images)  
 │   ├── script.js      # Logique client (Socket.io, PeerJS, Canvas)  
 │   └── style.css      # Styles globaux  
-├── views/             # Templates EJS  
+├── **views/**             # Templates EJS  
 │   ├── dashboard.ejs  # Dashboard utilisateur  
 │   ├── index.ejs      # Page d'accueil publique  
 │   ├── room.ejs       # Salle de réunion  
