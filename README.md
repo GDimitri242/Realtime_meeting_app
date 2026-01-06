@@ -39,7 +39,7 @@ Suivez ces instructions pour lancer le projet localement.
 
 ### 2. Cloner le dépôt
 ```bash
-git clone https://github.com/votre-nom-utilisateur/ciras-meet.git
+git clone https://github.com/GDimitri242/Realtime_meeting_app.git
 cd ciras-meet
 ```
 
